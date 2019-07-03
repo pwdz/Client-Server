@@ -3,12 +3,20 @@ public class Info {
     private int type;
     private byte[] fileByteCode;
     private String fileName;
-
-    public Info(int type) {
+    private String srcName;
+    private String desName;
+    public Info(String srcName,String desName,int type) {
         this.type = type;
+        this.srcName = srcName;
+        this.desName = desName;
     }
 
-    public Info() {
+    public String getDesName() {
+        return desName;
+    }
+
+    public String getSrcName() {
+        return srcName;
     }
 
     public void setFileByteCode(byte[] fileByteCode) {

@@ -9,6 +9,9 @@ public class ClientHandler implements Runnable {
     private InputStream input;
     private OutputStream ouput;
     private Info info;
+    private ObjectInputStream reader;
+    private ObjectOutputStream writer;
+
     public ClientHandler(Socket socket) {
         try {
             input = socket.getInputStream();
@@ -16,23 +19,21 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
     public void run() {
         try {
-            ObjectInputStream reader = new ObjectInputStream(input);
-            ObjectOutputStream writer = new ObjectOutputStream(ouput);
             while (true) {
                 info = (Info) reader.readObject();
-                switch (info.getType())
-                {
+                switch (info.getType()) {
                     case 0:
                         break;
-                    case 1:
+                    case 1://
                         break;
-                    case 2:
+                    case 2://Info must be sent
+                        searchForDesOutputStream(info.getDesName());
+                         
                         break;
                     case 3:
                         break;
@@ -43,6 +44,10 @@ public class ClientHandler implements Runnable {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+
+    }
+    private OutputStream searchForDesOutputStream(String username)
+    {
 
     }
 }
