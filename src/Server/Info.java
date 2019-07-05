@@ -1,8 +1,6 @@
-package Server;
+package Network.Server;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.util.HashMap;
 
 public class Info implements Serializable {
@@ -11,8 +9,8 @@ public class Info implements Serializable {
     private String fileName;
     private String srcName;
     private String desName;
-    static HashMap<String, OutputStream> usersOutputStream = new HashMap<>();
-    static HashMap<String, InputStream> usersInputStream= new HashMap<>();
+    static HashMap<String, ObjectOutputStream> usersObjectOutputStream = new HashMap<>();
+    static HashMap<String, ObjectInputStream> usersObjectInputStream= new HashMap<>();
     public Info(String srcName,String desName,int type) {
         this.type = type;
         this.srcName = srcName;

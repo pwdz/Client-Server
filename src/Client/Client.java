@@ -1,10 +1,9 @@
-package Client;
+package Network.Client;
 
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
-
-import Server.Info;
+import Network.Server.Info;
 
 public class Client {
     private Socket socket;
@@ -16,7 +15,6 @@ public class Client {
     private String username;
     private ObjectOutputStream writer;
     private ObjectInputStream reader;
-
     public Client(String username) {
         this.username = username;
         try {
@@ -24,9 +22,10 @@ public class Client {
             input = socket.getInputStream();
             output = socket.getOutputStream();
             System.out.println("!");
-            writer = new ObjectOutputStream(output);
-            writer.flush();
+
+//            writer.flush();
             reader = new ObjectInputStream(input);
+            writer = new ObjectOutputStream(output);
             System.out.println(":|");
             clientSender(new Info(username, "", 0));
             System.out.println("here");
@@ -39,10 +38,12 @@ public class Client {
 
     public void clientReceiver() {
         while (true) {
+            System.out.println("true");
             try {
                 infoReceived = (Info) reader.readObject();
                 switch (infoReceived.getType()) {
                     case 0://
+                        System.out.println("oOoOoOoOoOoOoOoOo");
                         break;
                     case 1://request for file
                         System.out.println("request!");
@@ -55,6 +56,11 @@ public class Client {
                         fileOutput.write(infoReceived.getFileByteCode());
                         break;
                     case 3:
+                        System.out.println(":L");
+                        break;
+                    default:
+//                        System.exit(-1);
+                        System.out.println("________________");
                         break;
                 }
             } catch (IOException e) {
@@ -74,8 +80,7 @@ public class Client {
                     System.out.println("------------------");
                     break;
                 case 1://sending request
-                    writer.writeObject(new Info(username,"mmd",1));
-                    writer.flush();
+                    writer.writeObject(new Info(username, "mmd", 1));
                     System.out.println("tohooooooooo");
                     break;
                 case 2://info must be sent
