@@ -4,8 +4,7 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
 
-import Info.Info;
-import com.sun.xml.internal.ws.server.ServerRtException;
+import Server.Info;
 
 public class Client {
     private Socket socket;
@@ -15,6 +14,8 @@ public class Client {
     private OutputStream output;
     private Info infoReceived;
     private String username;
+    private ObjectOutputStream writer;
+    private ObjectInputStream reader;
 
     public Client(String username) {
         this.username = username;
@@ -22,56 +23,63 @@ public class Client {
             socket = new Socket(IP, PORT);
             input = socket.getInputStream();
             output = socket.getOutputStream();
-            clientReceiver();
+            System.out.println("!");
+            writer = new ObjectOutputStream(output);
+            writer.flush();
+            reader = new ObjectInputStream(input);
+            System.out.println(":|");
+            clientSender(new Info(username, "", 0));
+            System.out.println("here");
+            new Thread(() -> clientReceiver()).start();
+            System.out.println("there!");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void clientReceiver() {
-        try {
-            ObjectInputStream reader = new ObjectInputStream(input);
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    while (true) {
-                        try {
-                            infoReceived = (Info) reader.readObject();
-                            switch (infoReceived.getType()) {
-                                case 0://
-                                    break;
-                                case 1://request for file
-                                    Info info = new Info(username, infoReceived.getSrcName(), 2);
-                                    clientSender(info);
-                                    break;
-                                case 2://alarm of a file being delivered to here
-                                    FileOutputStream fileOutput = new FileOutputStream("./Files/"+"a.mp3");
-                                    fileOutput.write(infoReceived.getFileByteCode());
-                                    break;
-                                case 3:
-                                    break;
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } catch (ClassNotFoundException e) {
-                            e.printStackTrace();
-                        }
-                    }
+        while (true) {
+            try {
+                infoReceived = (Info) reader.readObject();
+                switch (infoReceived.getType()) {
+                    case 0://
+                        break;
+                    case 1://request for file
+                        System.out.println("request!");
+                        Info info = new Info(username, infoReceived.getSrcName(), 2);
+                        clientSender(info);
+                        break;
+                    case 2://alarm of a file being delivered to here
+                        System.out.println("received!");
+                        FileOutputStream fileOutput = new FileOutputStream("./Files/" + "a.mp3");
+                        fileOutput.write(infoReceived.getFileByteCode());
+                        break;
+                    case 3:
+                        break;
                 }
-            }).start();
-        } catch (IOException e) {
-            e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
         }
-
     }
 
     public void clientSender(Info info) {
         try {
-            ObjectOutputStream writer = new ObjectOutputStream(output);
             switch (info.getType()) {
-                case 1://
+                case 0://telling to server that u've been added :)
+                    System.out.println("123123123123");
+                    writer.writeObject(new Info(username, "", 0));
+                    System.out.println("------------------");
+                    break;
+                case 1://sending request
+                    writer.writeObject(new Info(username,"mmd",1));
+                    writer.flush();
+                    System.out.println("tohooooooooo");
                     break;
                 case 2://info must be sent
+                    info.setFileByteCode(Files.readAllBytes(new File("C:/Users/acer/Music/01 Honey.mp3").toPath()));
                     writer.writeObject(info);
                     break;
                 case 3:
@@ -79,10 +87,16 @@ public class Client {
                 case 4:
                     break;
             }
+            writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
+    }
+
+    public void setMessage(int type, String desName) {
+        clientSender(new Info(username, desName, type));
+        System.out.println("in func");
     }
 
 }

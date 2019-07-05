@@ -1,21 +1,20 @@
 package Server;
 
-import Info.Info;
-
 import java.io.*;
 import java.net.Socket;
 
 public class ClientHandler implements Runnable {
     private InputStream input;
-    private OutputStream ouput;
+    private OutputStream output;
     private Info info;
     private ObjectInputStream reader;
     private ObjectOutputStream writer;
 
     public ClientHandler(Socket socket) {
         try {
+            System.out.println("created");
             input = socket.getInputStream();
-            ouput = socket.getOutputStream();
+            output = socket.getOutputStream();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -23,17 +22,30 @@ public class ClientHandler implements Runnable {
 
     @Override
     public void run() {
+
         try {
+            reader = new ObjectInputStream(input);
             while (true) {
                 info = (Info) reader.readObject();
                 switch (info.getType()) {
-                    case 0:
+                    case 0://a client is added
+                        System.out.println("Source--> " + info.getSrcName());
+                        info.usersOutputStream.put(info.getSrcName(), output);
+                        info.usersInputStream.put(info.getSrcName(), input);
                         break;
-                    case 1://
+                    case 1://request for a file
+                        System.out.println("check");
+                        if (searchForDesOutputStream(info.getDesName()) != null) {
+                            System.out.println("check2");
+                            writer = new ObjectOutputStream(searchForDesOutputStream(info.getDesName()));
+                            writer.writeObject(info);
+                        }
                         break;
                     case 2://Info must be sent
-                        searchForDesOutputStream(info.getDesName());
-                         
+                        if (searchForDesOutputStream(info.getDesName()) != null) {
+                            writer = new ObjectOutputStream(searchForDesOutputStream(info.getDesName()));
+                            writer.writeObject(info);
+                        }
                         break;
                     case 3:
                         break;
@@ -46,8 +58,12 @@ public class ClientHandler implements Runnable {
         }
 
     }
-    private OutputStream searchForDesOutputStream(String username)
-    {
 
+    private OutputStream searchForDesOutputStream(String username) {
+        for (String usernameHashmap : info.usersOutputStream.keySet()) {
+            if (username.equals(usernameHashmap))
+                return info.usersOutputStream.get(usernameHashmap);
+        }
+        return null;
     }
 }
